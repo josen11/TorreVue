@@ -17,10 +17,20 @@
       <!-- You -->
       <v-col cols="12" md="5" sm="12" lg="5" xs="12">
         <v-row>
-          <v-col cols="12" class="d-flex justify-center">
+          <v-col cols="12" md="12" sm="12" lg="12" xs="12" class="d-flex justify-center my-0 py-0">
             <p style="font-size: 30px" class="mb-0">You</p>
           </v-col>
-          <v-col cols="12" class="d-flex justify-center">
+          <!--<v-col class="d-flex justify-center my-0 py-0">
+            <v-tooltip right>
+              <template v-slot:activator="{ on, attrs }">
+                <v-btn rounded dark v-bind="attrs" v-on="on" @click="matchSkills"
+                  ><v-icon>mdi-abacus</v-icon>
+                </v-btn>
+              </template>
+              <span>Match!!</span>
+            </v-tooltip>
+          </v-col>-->
+          <v-col cols="12" md="12" sm="12" lg="12" xs="12" class="d-flex justify-center">
             <v-card mx-auto outlined>
               <v-row class="pa-4">
                 <v-col
@@ -128,7 +138,8 @@
                     </v-card>
                   </v-dialog>
                 </v-col>
-                <v-col>
+                <!-- All Skill after matched-->
+                <v-col cols="12" md="12" sm="12" lg="12" xs="12">
                   <div class="px-4">
                     <p style="font-size: 12px" class="mb-0" v-if="skills">
                       {{ name }} skills:
@@ -137,12 +148,23 @@
                       Select a person to show the skills:
                     </p>
                     <v-chip-group column>
-                      <v-chip small v-for="skill in skillsperson">
-                        {{ skill.name }}
+                      <v-chip small :dark="skill.dark" :outlined="skill.outlined" v-for="skill in skillspersonfinal" :key="skill.index">
+                        {{ skill.skill }}
                       </v-chip>
                     </v-chip-group>
                   </div>
                 </v-col>
+                <!-- All Skill-->
+                <!--<v-col cols="12" md="12" sm="12" lg="12" xs="6">
+                  <div class="px-4">
+                    
+                    <v-chip-group column>
+                      <v-chip small v-for="skill in skillsperson" :key="skill.index">
+                        {{ skill.name }}
+                      </v-chip>
+                    </v-chip-group>
+                  </div>
+                </v-col>-->
               </v-row>
             </v-card>
           </v-col>
@@ -151,9 +173,19 @@
       <!--Jobs-->
       <v-col cols="12" md="7" sm="12" lg="7" xs="12">
         <v-row>
-          <v-col cols="12" class="d-flex justify-center">
+          <v-col cols="12" class="d-flex justify-center my-0 py-0">
             <p style="font-size: 30px" class="mb-0">Jobs</p>
           </v-col>
+          <!-- <v-col class="d-flex justify-center my-0 py-0">
+            <v-tooltip left>
+              <template v-slot:activator="{ on, attrs }">
+                <v-btn rounded dark v-bind="attrs" v-on="on" @click="matchSkills"
+                  ><v-icon>mdi-abacus</v-icon>
+                </v-btn>
+              </template>
+              <span>Match!!</span>
+            </v-tooltip>
+          </v-col>-->
           <v-col cols="12">
             <v-card mx-auto outlined>
               <v-row class="pa-4">
@@ -255,16 +287,28 @@
                     </v-card>
                   </v-dialog>
                 </v-col>-->
-                <v-col>
+                <!-- All Skills after matched-->
+                <v-col cols="12" md="12" sm="12" lg="12" xs="6">
                   <div class="px-4">
                     <p style="font-size: 12px" class="mb-0">Skills:</p>
                     <v-chip-group column>
-                      <v-chip small v-for="skill in skillsjob">
-                        {{ skill.name }}
+                      <v-chip small :dark="skill.dark" :outlined="skill.outlined" v-for="skill in skillsjobfinal" :key="skill.index">
+                        {{ skill.skill }}
                       </v-chip>
                     </v-chip-group>
                   </div>
                 </v-col>
+                <!-- All Skills
+                <v-col>
+                  <div class="px-4">
+                    
+                    <v-chip-group column>
+                      <v-chip small v-for="skill in skillsjob" :key="skill.index">
+                        {{ skill.name }}
+                      </v-chip>
+                    </v-chip-group>
+                  </div>
+                </v-col>-->
               </v-row>
             </v-card>
           </v-col>
@@ -295,6 +339,7 @@ export default {
     return {
       people: [],
       skillsperson: [],
+      skillspersonfinal: [],
       skills: false,
       name: "",
       idperson: "",
@@ -307,12 +352,14 @@ export default {
       idjob: "",
       jobs: [],
       skillsjob: [],
+      skillsjobfinal: [],
       state: "",
       dialog1: false,
       dialog2: false,
       username: "",
-      jobid:"",
+      jobid: "",
       validForm1: false,
+      switch1: true,
       rules: {
         required: (v) => !!v || "This field is required",
       },
@@ -403,7 +450,7 @@ export default {
       me.people = [];
       axios
         .post(
-          "https://search.torre.co/people/_search/?offset=1&size=100&aggregate=true"
+          "https://search.torre.co/people/_search/?offset=1&size=50&aggregate=true"
         )
         .then(function (response) {
           me.people = me.createJSONPeople(response.data.results);
@@ -421,7 +468,7 @@ export default {
       me.jobs = [];
       axios
         .post(
-          "https://search.torre.co/opportunities/_search/?offset=1&size=500&aggregate=true"
+          "https://search.torre.co/opportunities/_search/?offset=1&size=50&aggregate=true"
         )
         .then(function (response) {
           me.jobs = me.createJSONJob(response.data.results);
@@ -504,12 +551,72 @@ export default {
       me.skillsperson = person.skills;
       me.name = person.name.slice(0, person.name.indexOf(" ")) + "'s";
       me.skills = true;
+      me.matchSkills();
     },
     getJobSkills() {
       let me = this;
       let job = this.$_.findWhere(me.jobs, { id: me.idjob });
       me.skillsjob = job.skills;
-      //me.name= person.name.slice(0,person.name.indexOf(" "))+'\'s';
+      me.matchSkills();
+    },
+    JSONtoArray(datajson){
+      let array=[];
+      datajson.forEach((item, index) => {
+        array.push(item.name);
+      });
+      return array;
+    },
+    matchSkills(){
+      let me = this;
+      me.skillspersonfinal=[];
+      me.skillsjobfinal=[];
+      //Convertimos array simple los array json de skills.
+      let array1=this.JSONtoArray(me.skillsperson);
+      let array2=this.JSONtoArray(me.skillsjob);
+      
+      //Identificamos los que no cumplen entre persona y trabajo, dejando los missed de persona
+      let missedskillsperson = this.$_.difference(array1, array2);
+      //Identificamos los que no cumplen entre trabajo y persona, dejando los misssed de trabajo
+      let missedskillsjob = this.$_.difference(array2, array1);
+
+      //Identificamos los que coinciden de persona
+      let matchedskillsperson = this.$_.difference(array1, missedskillsperson);
+       //Identificamos los que coinciden de job
+      let matchedskillsjob = this.$_.difference(array2, missedskillsjob);
+
+      // consolidamos skill personas final
+      matchedskillsperson.forEach(element => 
+        me.skillspersonfinal.push({skill:element,dark:true,outlined:false, color:"black"})
+      );
+      missedskillsperson.forEach(element => 
+        me.skillspersonfinal.push({skill:element,dark:false,outlined:true, color:"white"})
+      );
+
+      // consolidamos skill jobs final
+      matchedskillsjob.forEach(element => 
+        me.skillsjobfinal.push({skill:element,dark:true,outlined:false, color:"black"})
+      );
+      missedskillsjob.forEach(element => 
+        me.skillsjobfinal.push({skill:element,dark:false,outlined:true, color:"white"})
+      );
+
+      //Nice Join o array in ES6
+      //me.skillspersonfinal = [...me.matchedskillsperson, ...missedskillsperson]
+    },
+    //:dark="true" :color="black" :outlined="false"
+    getstyleskill(item, data){
+      let me = this;
+      if(data.indexOf(item))
+        return true;
+      else
+        return false;
+    },
+    getcolorskill(item, data){
+      let me = this;
+      if(me.data.indexOf(item))
+        return "back";
+      else
+        return "white";
     },
     customFilter(item, queryText, itemText) {
       const textOne = item.name.toLowerCase();
