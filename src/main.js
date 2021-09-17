@@ -9,6 +9,8 @@ import vuetify from './plugins/vuetify'
 Vue.use(underscore);
 Vue.config.productionTip = false
 
+//axios.defaults.headers.common['Access-Control-Allow-Origin'] = '*';
+
 new Vue({
   router,
   store,

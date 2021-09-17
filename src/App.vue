@@ -32,14 +32,14 @@
       </v-chip>
       <v-spacer />
     </v-app-bar>
-    <v-content class="grey lighten-5">
+    <v-main class="grey lighten-5">
       <v-container fluid>
         <v-slide-y-transition mode="out-in">
           <router-view />
           <!--<loader></loader>-->
         </v-slide-y-transition>
       </v-container>
-    </v-content>
+    </v-main>
     <v-footer>
       <v-spacer></v-spacer>
       <div>
