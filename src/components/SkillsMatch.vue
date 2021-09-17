@@ -27,16 +27,18 @@
           >
             <p style="font-size: 30px" class="mb-0">You</p>
           </v-col>
-          <!--<v-col class="d-flex justify-center my-0 py-0">
-            <v-tooltip right>
+          <v-col class="d-flex justify-center my-0 py-0">
+            <!--<v-tooltip right>
               <template v-slot:activator="{ on, attrs }">
                 <v-btn rounded dark v-bind="attrs" v-on="on" @click="matchSkills"
                   ><v-icon>mdi-abacus</v-icon>
                 </v-btn>
               </template>
               <span>Match!!</span>
-            </v-tooltip>
-          </v-col>-->
+            </v-tooltip>-->
+            <v-chip class="ma-2" dark> Matched skills: <b> {{totalmatchedperson}}</b> </v-chip>
+            <v-chip class="ma-2" outlined> Missed skills: <b>  {{totalmissedperson}}</b> </v-chip> 
+          </v-col>
           <v-col
             cols="12"
             md="12"
@@ -196,16 +198,18 @@
           <v-col cols="12" class="d-flex justify-center my-0 py-0">
             <p style="font-size: 30px" class="mb-0">Job(s)</p>
           </v-col>
-          <!-- <v-col class="d-flex justify-center my-0 py-0">
-            <v-tooltip left>
+          <v-col class="d-flex justify-center my-0 py-0">
+            <!-- <v-tooltip left>
               <template v-slot:activator="{ on, attrs }">
                 <v-btn rounded dark v-bind="attrs" v-on="on" @click="matchSkills"
                   ><v-icon>mdi-abacus</v-icon>
                 </v-btn>
               </template>
               <span>Match!!</span>
-            </v-tooltip>
-          </v-col>-->
+            </v-tooltip>-->
+            <v-chip class="ma-2" dark> Matched skills: <b> {{totalmatchedjob}}</b> </v-chip>
+            <v-chip class="ma-2" outlined> Missed skills: <b>  {{totalmissedjob}}</b> </v-chip> 
+          </v-col>
           <v-col cols="12">
             <v-card mx-auto outlined>
               <v-row class="pa-4">
@@ -396,7 +400,7 @@ export default {
       idjob: [],
       jobs: [],
       skillsjob: [],
-      skillsjobunique:[],
+      skillsjobunique: [],
       skillsjobfinal: [],
       state: "",
       dialog1: false,
@@ -409,6 +413,10 @@ export default {
         required: (v) => !!v || "This field is required",
       },
       searchInput: null,
+      totalmatchedperson:0,
+      totalmatchedjob:0,
+      totalmissedperson:0,
+      totalmissedjob:0,
     };
   },
   //============== Created
@@ -611,8 +619,8 @@ export default {
       });
       console.log("All skills");
       console.log(me.skillsjob);
-     
-      me.skillsjobunique= me.uniqueValues(me.skillsjob);
+
+      me.skillsjobunique = me.uniqueValues(me.skillsjob);
       console.log("All unique skills");
       console.log(me.skillsjobunique);
       me.matchSkills();
@@ -628,6 +636,10 @@ export default {
       let me = this;
       me.skillspersonfinal = [];
       me.skillsjobfinal = [];
+      me.totalmatchedperson=0;
+      me.totalmatchedjob=0;
+      me.totalmissedperson=0;
+      me.totalmissedjob=0;
       //Convertimos array simple los array json de skills.
       let array1 = this.JSONtoArray(me.skillsperson);
       //let array2 = this.JSONtoArray(me.skillsjob);
@@ -640,7 +652,16 @@ export default {
       //Identificamos los que coinciden de persona
       let matchedskillsperson = this.$_.difference(array1, missedskillsperson);
       //Identificamos los que coinciden de job
-      let matchedskillsjob = this.$_.difference(me.skillsjobunique, missedskillsjob);
+      let matchedskillsjob = this.$_.difference(
+        me.skillsjobunique,
+        missedskillsjob
+      );
+
+      //Totals
+      me.totalmatchedperson=matchedskillsperson.length;
+      me.totalmatchedjob=matchedskillsjob.length;
+      me.totalmissedperson=missedskillsperson.length;
+      me.totalmissedjob=missedskillsjob.length;
 
       // consolidamos skill personas final
       matchedskillsperson.forEach((element) =>
@@ -711,9 +732,9 @@ export default {
       return self.indexOf(value) === index;
     },
     uniqueValues(data) {
-      let unique= data.filter(this.onlyUnique);
+      let unique = data.filter(this.onlyUnique);
       return unique;
-    }
+    },
   },
 };
 </script>
