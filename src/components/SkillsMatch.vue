@@ -17,7 +17,14 @@
       <!-- You -->
       <v-col cols="12" md="5" sm="12" lg="5" xs="12">
         <v-row>
-          <v-col cols="12" md="12" sm="12" lg="12" xs="12" class="d-flex justify-center my-0 py-0">
+          <v-col
+            cols="12"
+            md="12"
+            sm="12"
+            lg="12"
+            xs="12"
+            class="d-flex justify-center my-0 py-0"
+          >
             <p style="font-size: 30px" class="mb-0">You</p>
           </v-col>
           <!--<v-col class="d-flex justify-center my-0 py-0">
@@ -30,7 +37,14 @@
               <span>Match!!</span>
             </v-tooltip>
           </v-col>-->
-          <v-col cols="12" md="12" sm="12" lg="12" xs="12" class="d-flex justify-center">
+          <v-col
+            cols="12"
+            md="12"
+            sm="12"
+            lg="12"
+            xs="12"
+            class="d-flex justify-center"
+          >
             <v-card mx-auto outlined>
               <v-row class="pa-4">
                 <v-col
@@ -148,7 +162,13 @@
                       Select a person to show the skills:
                     </p>
                     <v-chip-group column>
-                      <v-chip small :dark="skill.dark" :outlined="skill.outlined" v-for="skill in skillspersonfinal" :key="skill.index">
+                      <v-chip
+                        small
+                        :dark="skill.dark"
+                        :outlined="skill.outlined"
+                        v-for="skill in skillspersonfinal"
+                        :key="skill.index"
+                      >
                         {{ skill.skill }}
                       </v-chip>
                     </v-chip-group>
@@ -174,7 +194,7 @@
       <v-col cols="12" md="7" sm="12" lg="7" xs="12">
         <v-row>
           <v-col cols="12" class="d-flex justify-center my-0 py-0">
-            <p style="font-size: 30px" class="mb-0">Jobs</p>
+            <p style="font-size: 30px" class="mb-0">Job(s)</p>
           </v-col>
           <!-- <v-col class="d-flex justify-center my-0 py-0">
             <v-tooltip left>
@@ -202,6 +222,8 @@
                     :items="jobs"
                     solo-inverted
                     flat
+                    chips
+                    multiple
                     hide-details="true"
                     :filter="customFilter"
                     item-text="name"
@@ -209,6 +231,8 @@
                     label="Search jobs ..."
                     @change="getJobSkills"
                     class="pb-0"
+                    @input="searchInput = null"
+                    :search-input.sync="searchInput"
                   >
                     <template v-slot:item="data">
                       <v-list-item-content>
@@ -219,6 +243,17 @@
                           v-html="data.item.id"
                         ></v-list-item-subtitle>
                       </v-list-item-content>
+                    </template>
+                    <template v-slot:selection="data">
+                      <v-chip
+                        small
+                        dense
+                        class="mb-1 mt-1"
+                        close
+                        @click:close="remove(data.item)"
+                      >
+                        <span>{{ data.item.name }}</span>
+                      </v-chip>
                     </template>
                   </v-autocomplete>
                 </v-col>
@@ -292,23 +327,32 @@
                   <div class="px-4">
                     <p style="font-size: 12px" class="mb-0">Skills:</p>
                     <v-chip-group column>
-                      <v-chip small :dark="skill.dark" :outlined="skill.outlined" v-for="skill in skillsjobfinal" :key="skill.index">
+                      <v-chip
+                        small
+                        :dark="skill.dark"
+                        :outlined="skill.outlined"
+                        v-for="skill in skillsjobfinal"
+                        :key="skill.index"
+                      >
                         {{ skill.skill }}
                       </v-chip>
                     </v-chip-group>
                   </div>
                 </v-col>
-                <!-- All Skills
+                <!--All Skills
                 <v-col>
                   <div class="px-4">
-                    
                     <v-chip-group column>
-                      <v-chip small v-for="skill in skillsjob" :key="skill.index">
-                        {{ skill.name }}
+                      <v-chip
+                        small
+                        v-for="skill in skillsjob"
+                        :key="skill.index"
+                      >
+                        {{ skill }}
                       </v-chip>
                     </v-chip-group>
-                  </div>
-                </v-col>-->
+                  </div> </v-col
+                >-->
               </v-row>
             </v-card>
           </v-col>
@@ -349,9 +393,10 @@ export default {
       icon: "mdi-thumb-up",
       error: null,
       errorMessages: "",
-      idjob: "",
+      idjob: [],
       jobs: [],
       skillsjob: [],
+      skillsjobunique:[],
       skillsjobfinal: [],
       state: "",
       dialog1: false,
@@ -363,6 +408,7 @@ export default {
       rules: {
         required: (v) => !!v || "This field is required",
       },
+      searchInput: null,
     };
   },
   //============== Created
@@ -555,68 +601,96 @@ export default {
     },
     getJobSkills() {
       let me = this;
-      let job = this.$_.findWhere(me.jobs, { id: me.idjob });
-      me.skillsjob = job.skills;
+      me.skillsjob = [];
+      me.skillsjobunique = [];
+      me.idjob.forEach((element) => {
+        let job = this.$_.findWhere(me.jobs, { id: element });
+        job.skills.forEach((j) => {
+          me.skillsjob.push(j.name);
+        });
+      });
+      console.log("All skills");
+      console.log(me.skillsjob);
+     
+      me.skillsjobunique= me.uniqueValues(me.skillsjob);
+      console.log("All unique skills");
+      console.log(me.skillsjobunique);
       me.matchSkills();
     },
-    JSONtoArray(datajson){
-      let array=[];
+    JSONtoArray(datajson) {
+      let array = [];
       datajson.forEach((item, index) => {
         array.push(item.name);
       });
       return array;
     },
-    matchSkills(){
+    matchSkills() {
       let me = this;
-      me.skillspersonfinal=[];
-      me.skillsjobfinal=[];
+      me.skillspersonfinal = [];
+      me.skillsjobfinal = [];
       //Convertimos array simple los array json de skills.
-      let array1=this.JSONtoArray(me.skillsperson);
-      let array2=this.JSONtoArray(me.skillsjob);
-      
+      let array1 = this.JSONtoArray(me.skillsperson);
+      //let array2 = this.JSONtoArray(me.skillsjob);
+
       //Identificamos los que no cumplen entre persona y trabajo, dejando los missed de persona
-      let missedskillsperson = this.$_.difference(array1, array2);
+      let missedskillsperson = this.$_.difference(array1, me.skillsjobunique);
       //Identificamos los que no cumplen entre trabajo y persona, dejando los misssed de trabajo
-      let missedskillsjob = this.$_.difference(array2, array1);
+      let missedskillsjob = this.$_.difference(me.skillsjobunique, array1);
 
       //Identificamos los que coinciden de persona
       let matchedskillsperson = this.$_.difference(array1, missedskillsperson);
-       //Identificamos los que coinciden de job
-      let matchedskillsjob = this.$_.difference(array2, missedskillsjob);
+      //Identificamos los que coinciden de job
+      let matchedskillsjob = this.$_.difference(me.skillsjobunique, missedskillsjob);
 
       // consolidamos skill personas final
-      matchedskillsperson.forEach(element => 
-        me.skillspersonfinal.push({skill:element,dark:true,outlined:false, color:"black"})
+      matchedskillsperson.forEach((element) =>
+        me.skillspersonfinal.push({
+          skill: element,
+          dark: true,
+          outlined: false,
+          color: "black",
+        })
       );
-      missedskillsperson.forEach(element => 
-        me.skillspersonfinal.push({skill:element,dark:false,outlined:true, color:"white"})
+      missedskillsperson.forEach((element) =>
+        me.skillspersonfinal.push({
+          skill: element,
+          dark: false,
+          outlined: true,
+          color: "white",
+        })
       );
 
       // consolidamos skill jobs final
-      matchedskillsjob.forEach(element => 
-        me.skillsjobfinal.push({skill:element,dark:true,outlined:false, color:"black"})
+      matchedskillsjob.forEach((element) =>
+        me.skillsjobfinal.push({
+          skill: element,
+          dark: true,
+          outlined: false,
+          color: "black",
+        })
       );
-      missedskillsjob.forEach(element => 
-        me.skillsjobfinal.push({skill:element,dark:false,outlined:true, color:"white"})
+      missedskillsjob.forEach((element) =>
+        me.skillsjobfinal.push({
+          skill: element,
+          dark: false,
+          outlined: true,
+          color: "white",
+        })
       );
 
       //Nice Join o array in ES6
       //me.skillspersonfinal = [...me.matchedskillsperson, ...missedskillsperson]
     },
     //:dark="true" :color="black" :outlined="false"
-    getstyleskill(item, data){
+    getstyleskill(item, data) {
       let me = this;
-      if(data.indexOf(item))
-        return true;
-      else
-        return false;
+      if (data.indexOf(item)) return true;
+      else return false;
     },
-    getcolorskill(item, data){
+    getcolorskill(item, data) {
       let me = this;
-      if(me.data.indexOf(item))
-        return "back";
-      else
-        return "white";
+      if (me.data.indexOf(item)) return "back";
+      else return "white";
     },
     customFilter(item, queryText, itemText) {
       const textOne = item.name.toLowerCase();
@@ -626,6 +700,20 @@ export default {
         textOne.indexOf(searchText) > -1 || textTwo.indexOf(searchText) > -1
       );
     },
+    remove(item) {
+      let me = this;
+      const index1 = this.idjob.indexOf(item.id);
+      if (index1 >= 0) this.idjob.splice(index1, 1);
+      me.getJobSkills();
+    },
+    //Nice https://stackoverflow.com/questions/1960473/get-all-unique-values-in-a-javascript-array-remove-duplicates
+    onlyUnique(value, index, self) {
+      return self.indexOf(value) === index;
+    },
+    uniqueValues(data) {
+      let unique= data.filter(this.onlyUnique);
+      return unique;
+    }
   },
 };
 </script>
